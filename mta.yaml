@@ -1,0 +1,133 @@
+_schema-version: 3.3.0
+ID: sap-ai-chatbot-ui
+description: A simple CAP project.
+version: 1.0.0
+modules:
+- name: sap-ai-chatbot-ui-srv
+  type: nodejs
+  path: gen/srv
+  requires:
+  - name: sap-ai-chatbot-ui-auth
+  - name: sap-ai-chatbot-ui-destination
+  provides:
+  - name: srv-api
+    properties:
+      srv-url: ${default-url}
+  parameters:
+    buildpack: nodejs_buildpack
+    instances: 1
+  build-parameters:
+    builder: npm-ci
+- name: sap-ai-chatbot-ui-app-deployer
+  type: com.sap.application.content
+  path: gen
+  requires:
+  - name: sap-ai-chatbot-ui-auth
+  - name: srv-api
+  - name: sap-ai-chatbot-ui-html5-repo-host
+    parameters:
+      config:
+        HTML5Runtime_enabled: true
+      content-target: true
+  build-parameters:
+    build-result: app/
+    requires:
+    - artifacts:
+      - project1.zip
+      name: sapaichatbotuiproject1
+      target-path: app/
+- name: sapaichatbotuiproject1
+  type: html5
+  path: app/project1
+  build-parameters:
+    build-result: dist
+    builder: custom
+    commands:
+    - npm install
+    - npm run build:cf
+    supported-platforms: []
+- name: sap-ai-chatbot-ui-destination-content
+  type: com.sap.application.content
+  requires:
+  - name: sap-ai-chatbot-ui-destination
+    parameters:
+      content-target: true
+  - name: sap-ai-chatbot-ui-html5-repo-host
+    parameters:
+      service-key:
+        name: sap-ai-chatbot-ui-html5-repo-host-key
+  - name: sap-ai-chatbot-ui-auth
+    parameters:
+      service-key:
+        name: sap-ai-chatbot-ui-auth-key
+  parameters:
+    content:
+      instance:
+        destinations:
+        - Name: sap-ai-chatbot-ui_html_repo_host
+          ServiceInstanceName: sap-ai-chatbot-ui-html5-service
+          ServiceKeyName: sap-ai-chatbot-ui-html5-repo-host-key
+          sap.cloud.service: sap-ai-chatbot-ui
+        - Authentication: OAuth2UserTokenExchange
+          Name: sap-ai-chatbot-ui_auth
+          ServiceInstanceName: sap-ai-chatbot-ui-xsuaa-service
+          ServiceKeyName: sap-ai-chatbot-ui-auth-key
+          sap.cloud.service: sap-ai-chatbot-ui
+        existing_destinations_policy: update
+  build-parameters:
+    no-source: true
+resources:
+- name: sap-ai-chatbot-ui-auth
+  type: org.cloudfoundry.managed-service
+  parameters:
+    config:
+      oauth2-configuration:
+        credential-types:
+        - binding-secret
+        - x509
+      tenant-mode: dedicated
+      xsappname: sap-ai-chatbot-ui-${org}-${space}
+    path: ./xs-security.json
+    service: xsuaa
+    service-name: sap-ai-chatbot-ui-xsuaa-service
+    service-plan: application
+- name: sap-ai-chatbot-ui-destination
+  type: org.cloudfoundry.managed-service
+  parameters:
+    config:
+      HTML5Runtime_enabled: true
+      init_data:
+        instance:
+          destinations:
+          - Authentication: NoAuthentication
+            Name: ui5
+            ProxyType: Internet
+            Type: HTTP
+            URL: https://ui5.sap.com
+          - Authentication: NoAuthentication
+            HTML5.DynamicDestination: true
+            HTML5.ForwardAuthToken: true
+            Name: srv-api
+            ProxyType: Internet
+            Type: HTTP
+            URL: ~{srv-api/srv-url}
+          existing_destinations_policy: update
+    service: destination
+    service-plan: lite
+  requires:
+  - name: srv-api
+- name: sap-ai-chatbot-ui-html5-repo-host
+  type: org.cloudfoundry.managed-service
+  parameters:
+    service: html5-apps-repo
+    service-name: sap-ai-chatbot-ui-html5-service
+    service-plan: app-host
+parameters:
+  deploy_mode: html5-repo
+  enable-parallel-deployments: true
+build-parameters:
+  before-all:
+  - builder: custom
+    commands:
+    - npm ci
+    - npx cds build --production

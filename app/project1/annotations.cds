@@ -1,0 +1,1 @@
+using AIService as service from '../../srv/service';

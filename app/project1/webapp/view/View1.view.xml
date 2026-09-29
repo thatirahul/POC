@@ -1,0 +1,708 @@
+<mvc:View
+    controllerName="project1.controller.View1"
+    xmlns:mvc="sap.ui.core.mvc"
+    xmlns:u="sap.ui.unified"
+    xmlns:core="sap.ui.core"
+    xmlns="sap.m"
+    displayBlock="true"
+>
+    <Page
+        showHeader="false"
+        enableScrolling="false"
+        class="chatPage"
+    >
+        <content>
+
+            <!-- ===================================================== -->
+            <!-- APPLICATION SHELL -->
+            <!-- ===================================================== -->
+
+            <HBox
+                width="100%"
+                height="100%"
+                class="chatAppShell"
+            >
+
+                <!-- ================================================= -->
+                <!-- LEFT SIDEBAR -->
+                <!-- ================================================= -->
+
+                <VBox
+                    visible="{view>/sidebarOpen}"
+                    height="100%"
+                    class="chatSidebar"
+                >
+
+                    <!-- ============================================= -->
+                    <!-- SIDEBAR HEADER -->
+                    <!-- ============================================= -->
+
+                    <HBox
+                        width="100%"
+                        alignItems="Center"
+                        class="sidebarHeader"
+                    >
+
+                        <Title
+                            text="SAP AI"
+                            level="H3"
+                            class="sidebarTitle"
+                        />
+
+                        <ToolbarSpacer />
+
+                        <Button
+                            icon="sap-icon://decline"
+                            type="Transparent"
+                            tooltip="Close Menu"
+                            press=".onToggleSidebar"
+                            class="sidebarCloseButton"
+                        />
+
+                    </HBox>
+
+
+                    <!-- ============================================= -->
+                    <!-- NEW CHAT -->
+                    <!-- ============================================= -->
+
+                    <VBox
+                        width="100%"
+                        class="newChatWrapper"
+                    >
+
+                        <Button
+                            text="New Chat"
+                            icon="sap-icon://add"
+                            type="Transparent"
+                            width="100%"
+                            press=".onNewChat"
+                            class="newChatButton"
+                        />
+
+                    </VBox>
+
+
+                    <!-- ============================================= -->
+                    <!-- CURRENT DOCUMENT -->
+                    <!-- ============================================= -->
+
+                    <VBox
+                        visible="{= !!${view>/documentId} }"
+                        class="sidebarDocument"
+                    >
+
+                        <Text
+                            text="Current Document"
+                            class="sidebarSectionLabel"
+                        />
+
+                        <HBox
+                            alignItems="Center"
+                            class="documentInfoRow"
+                        >
+
+                            <core:Icon
+                                src="sap-icon://pdf-attachment"
+                                size="1rem"
+                                class="documentIcon"
+                            />
+
+                            <Text
+                                text="{view>/fileName}"
+                                wrapping="true"
+                                class="documentName"
+                            />
+
+                        </HBox>
+
+                    </VBox>
+
+
+                    <!-- ============================================= -->
+                    <!-- CHAT HISTORY HEADER -->
+                    <!-- ============================================= -->
+
+                    <HBox
+                        width="100%"
+                        alignItems="Center"
+                        class="historyHeader"
+                    >
+
+                        <Text
+                            text="Chat History"
+                            class="sidebarSectionLabel"
+                        />
+
+                        <ToolbarSpacer />
+
+                        <Button
+                            icon="sap-icon://refresh"
+                            type="Transparent"
+                            tooltip="Refresh Chat History"
+                            press=".onRefreshHistory"
+                            class="historyRefreshButton"
+                        />
+
+                    </HBox>
+
+
+                    <!-- ============================================= -->
+                    <!-- CHAT HISTORY -->
+                    <!-- ============================================= -->
+
+                    <ScrollContainer
+                        vertical="true"
+                        horizontal="false"
+                        height="100%"
+                        class="historyScroll"
+                    >
+
+                        <List
+                            id="chatHistoryList"
+                            items="{history>/value}"
+                            noDataText="No chat history"
+                            showSeparators="None"
+                            class="sidebarHistoryList"
+                        >
+
+                            <CustomListItem
+                                type="Active"
+                                press=".onHistoryItemPress"
+                                class="historyListItem"
+                            >
+
+                                <VBox
+                                    width="100%"
+                                    class="sidebarHistoryItem"
+                                >
+
+                                    <Text
+                                        text="{history>question}"
+                                        wrapping="false"
+                                        class="sidebarHistoryQuestion"
+                                    />
+
+                                    <Text
+                                        text="{history>createdAt}"
+                                        class="sidebarHistoryDate"
+                                    />
+
+                                </VBox>
+
+                            </CustomListItem>
+
+                        </List>
+
+                    </ScrollContainer>
+
+                </VBox>
+
+
+                <!-- ================================================= -->
+                <!-- MAIN AREA -->
+                <!-- ================================================= -->
+
+                <VBox
+                    width="100%"
+                    height="100%"
+                    class="chatMainArea"
+                >
+
+                    <layoutData>
+                        <FlexItemData
+                            growFactor="1"
+                            shrinkFactor="1"
+                            baseSize="0%"
+                        />
+                    </layoutData>
+
+
+                    <!-- ============================================= -->
+                    <!-- TOP BAR -->
+                    <!-- ============================================= -->
+
+                    <HBox
+                        width="100%"
+                        alignItems="Center"
+                        class="chatTopBar"
+                    >
+
+                        <Button
+                            icon="sap-icon://menu2"
+                            type="Transparent"
+                            tooltip="Menu"
+                            press=".onToggleSidebar"
+                            class="menuButton"
+                        />
+
+                        <Title
+                            text="SAP AI Document Assistant"
+                            level="H4"
+                            class="topBarTitle"
+                        />
+
+                    </HBox>
+
+
+                    <!-- ================================================= -->
+                    <!-- LANDING SCREEN -->
+                    <!-- ================================================= -->
+
+                    <VBox
+                        visible="{= !${view>/chatStarted} }"
+                        width="100%"
+                        height="100%"
+                        justifyContent="Center"
+                        alignItems="Center"
+                        class="landingArea"
+                    >
+
+                        <layoutData>
+                            <FlexItemData
+                                growFactor="1"
+                                shrinkFactor="1"
+                                baseSize="0%"
+                            />
+                        </layoutData>
+
+
+                        <VBox
+                            width="100%"
+                            alignItems="Center"
+                            class="landingContent"
+                        >
+
+                            <!-- ========================================= -->
+                            <!-- GREETING -->
+                            <!-- ========================================= -->
+
+                            <Title
+                                text="{view>/greeting}"
+                                level="H1"
+                                textAlign="Center"
+                                class="greetingTitle"
+                            />
+
+                            <Text
+                                text="What's on your mind today?"
+                                textAlign="Center"
+                                class="greetingSubtitle"
+                            />
+
+
+                            <!-- ========================================= -->
+                            <!-- MAIN QUESTION BAR -->
+                            <!-- ========================================= -->
+
+                            <HBox
+                                width="100%"
+                                alignItems="Center"
+                                class="promptBar"
+                            >
+
+                                <!-- QUESTION INPUT -->
+
+                                <VBox
+                                    class="promptInputWrapper"
+                                >
+
+                                    <layoutData>
+                                        <FlexItemData
+                                            growFactor="1"
+                                            shrinkFactor="1"
+                                            baseSize="0%"
+                                        />
+                                    </layoutData>
+
+                                    <Input
+                                        id="questionInput"
+                                        width="100%"
+                                        value="{view>/question}"
+                                        placeholder="Ask anything..."
+                                        submit=".onAskQuestion"
+                                        enabled="{= !${view>/busy} }"
+                                        class="promptInput"
+                                    />
+
+                                </VBox>
+
+
+                                <!-- ===================================== -->
+                                <!-- LANDING ACTION BUTTONS -->
+                                <!-- ===================================== -->
+
+                                <HBox
+                                    alignItems="Center"
+                                    justifyContent="Center"
+                                    class="promptActions"
+                                >
+
+                                    <layoutData>
+                                        <FlexItemData
+                                            growFactor="0"
+                                            shrinkFactor="0"
+                                        />
+                                    </layoutData>
+
+
+                                    <!-- PLUS / UPLOAD -->
+
+                                    <Button
+                                        icon="sap-icon://add"
+                                        type="Transparent"
+                                        tooltip="Upload PDF Document"
+                                        press=".onOpenFileUploader"
+                                        class="promptActionButton"
+                                    />
+
+
+                                    <!-- ================================= -->
+                                    <!-- VOICE START / STOP -->
+                                    <!-- ================================= -->
+
+                                <Button
+    icon="{= ${view>/isListening}
+        ? 'sap-icon://stop'
+        : 'sap-icon://microphone' }"
+    type="Transparent"
+    tooltip="{= ${view>/isListening}
+        ? 'Stop Voice Input'
+        : 'Start Voice Input' }"
+    press=".onVoiceInput"
+    class="micCircleButton"
+/>
+
+
+                                    <!-- SEND -->
+
+                                    <Button
+                                        icon="sap-icon://paper-plane"
+                                        type="Emphasized"
+                                        tooltip="Send"
+                                        press=".onAskQuestion"
+                                        enabled="{= !${view>/busy} }"
+                                        class="sendButton"
+                                    />
+
+                                </HBox>
+
+                            </HBox>
+
+
+                            <!-- ========================================= -->
+                            <!-- HIDDEN FILE UPLOADER -->
+                            <!-- ========================================= -->
+
+                            <u:FileUploader
+                                id="fileUploader"
+                                name="file"
+                                fileType="pdf"
+                                mimeType="application/pdf"
+                                change=".onFileChange"
+                                class="hiddenUploader"
+                            />
+
+
+                            <!-- ========================================= -->
+                            <!-- SELECTED DOCUMENT -->
+                            <!-- ========================================= -->
+
+                            <HBox
+                                visible="{= !!${view>/fileName} }"
+                                alignItems="Center"
+                                class="selectedFileArea"
+                            >
+
+                                <core:Icon
+                                    src="sap-icon://pdf-attachment"
+                                    size="0.9rem"
+                                    class="selectedFileIcon"
+                                />
+
+                                <Text
+                                    text="{view>/fileName}"
+                                    wrapping="false"
+                                    class="selectedFileText"
+                                />
+
+                                <ObjectStatus
+                                    visible="{= !!${view>/documentId} }"
+                                    text="Ready"
+                                    state="Success"
+                                    class="fileReadyStatus"
+                                />
+
+                            </HBox>
+
+
+                            <!-- ========================================= -->
+                            <!-- UPLOAD MESSAGE -->
+                            <!-- ========================================= -->
+
+                            <MessageStrip
+                                id="uploadMessage"
+                                text=""
+                                type="Success"
+                                showIcon="true"
+                                showCloseButton="true"
+                                visible="false"
+                                class="uploadMessage"
+                            />
+
+
+                            <!-- ========================================= -->
+                            <!-- PROCESSING -->
+                            <!-- ========================================= -->
+
+                            <HBox
+                                visible="{view>/busy}"
+                                alignItems="Center"
+                                justifyContent="Center"
+                                class="busyArea"
+                            >
+
+                                <BusyIndicator
+                                    size="1rem"
+                                />
+
+                                <Text
+                                    text="{view>/busyText}"
+                                    class="busyText"
+                                />
+
+                            </HBox>
+
+                        </VBox>
+
+                    </VBox>
+
+
+                    <!-- ================================================= -->
+                    <!-- ACTIVE CHAT SCREEN -->
+                    <!-- ================================================= -->
+
+                    <VBox
+                        visible="{view>/chatStarted}"
+                        width="100%"
+                        height="100%"
+                        class="conversationArea"
+                    >
+
+                        <layoutData>
+                            <FlexItemData
+                                growFactor="1"
+                                shrinkFactor="1"
+                                baseSize="0%"
+                            />
+                        </layoutData>
+
+
+                        <!-- ============================================= -->
+                        <!-- CONVERSATION SCROLL AREA -->
+                        <!-- ============================================= -->
+
+                        <ScrollContainer
+                            id="conversationScroll"
+                            vertical="true"
+                            horizontal="false"
+                            width="100%"
+                            height="100%"
+                            class="conversationScroll"
+                        >
+
+                            <VBox
+                                width="100%"
+                                items="{conversation>/messages}"
+                                class="conversationContainer"
+                            >
+
+                                <items>
+
+                                    <VBox
+                                        width="100%"
+                                        class="{= ${conversation>role} === 'user'
+                                            ? 'messageRow userMessageRow'
+                                            : 'messageRow aiMessageRow' }"
+                                    >
+
+                                        <!-- MESSAGE AUTHOR -->
+
+                                        <Text
+                                            text="{= ${conversation>role} === 'user'
+                                                ? 'You'
+                                                : 'SAP AI' }"
+                                            class="messageAuthor"
+                                        />
+
+
+                                        <!-- MESSAGE CONTENT -->
+
+                                        <FormattedText
+                                            htmlText="{conversation>text}"
+                                            class="{= ${conversation>role} === 'user'
+                                                ? 'messageBubble userBubble'
+                                                : 'messageBubble aiBubble' }"
+                                        />
+
+                                    </VBox>
+
+                                </items>
+
+                            </VBox>
+
+                        </ScrollContainer>
+
+
+                        <!-- ============================================= -->
+                        <!-- CHAT PROCESSING -->
+                        <!-- ============================================= -->
+
+                        <HBox
+                            visible="{view>/busy}"
+                            alignItems="Center"
+                            class="chatBusyArea"
+                        >
+
+                            <BusyIndicator
+                                size="1rem"
+                            />
+
+                            <Text
+                                text="{view>/busyText}"
+                                class="busyText"
+                            />
+
+                        </HBox>
+
+
+                        <!-- ============================================= -->
+                        <!-- BOTTOM QUESTION AREA -->
+                        <!-- ============================================= -->
+
+                        <VBox
+                            width="100%"
+                            alignItems="Center"
+                            class="bottomPromptContainer"
+                        >
+
+                            <HBox
+                                width="100%"
+                                alignItems="Center"
+                                class="promptBar bottomPromptBar"
+                            >
+
+                                <!-- ===================================== -->
+                                <!-- QUESTION INPUT -->
+                                <!-- ===================================== -->
+
+                                <VBox
+                                    class="promptInputWrapper"
+                                >
+
+                                    <layoutData>
+                                        <FlexItemData
+                                            growFactor="1"
+                                            shrinkFactor="1"
+                                            baseSize="0%"
+                                        />
+                                    </layoutData>
+
+                                    <Input
+                                        id="chatQuestionInput"
+                                        width="100%"
+                                        value="{view>/question}"
+                                        placeholder="Ask anything..."
+                                        submit=".onAskQuestion"
+                                        enabled="{= !${view>/busy} }"
+                                        class="promptInput"
+                                    />
+
+                                </VBox>
+
+
+                                <!-- ===================================== -->
+                                <!-- ACTIVE CHAT ACTION BUTTONS -->
+                                <!-- ===================================== -->
+
+                                <HBox
+                                    alignItems="Center"
+                                    justifyContent="Center"
+                                    class="promptActions"
+                                >
+
+                                    <layoutData>
+                                        <FlexItemData
+                                            growFactor="0"
+                                            shrinkFactor="0"
+                                        />
+                                    </layoutData>
+
+
+                                    <!-- PLUS / UPLOAD -->
+
+                                    <Button
+                                        icon="sap-icon://add"
+                                        type="Transparent"
+                                        tooltip="Upload PDF Document"
+                                        press=".onOpenFileUploader"
+                                        class="promptActionButton"
+                                    />
+
+
+                                    <!-- ================================= -->
+                                    <!-- VOICE START / STOP -->
+                                    <!-- IMPORTANT: SAME AS LANDING SCREEN -->
+                                    <!-- ================================= -->
+
+                                   <Button
+    icon="{= ${view>/isListening}
+        ? 'sap-icon://stop'
+        : 'sap-icon://microphone' }"
+    type="Transparent"
+    tooltip="{= ${view>/isListening}
+        ? 'Stop Voice Input'
+        : 'Start Voice Input' }"
+    press=".onVoiceInput"
+    class="micCircleButton"
+/>
+
+
+                                    <!-- SEND -->
+
+                                    <Button
+                                        icon="sap-icon://paper-plane"
+                                        type="Emphasized"
+                                        tooltip="Send"
+                                        press=".onAskQuestion"
+                                        enabled="{= !${view>/busy} }"
+                                        class="sendButton"
+                                    />
+
+                                </HBox>
+
+                            </HBox>
+
+
+                            <!-- ========================================= -->
+                            <!-- DISCLAIMER -->
+                            <!-- ========================================= -->
+
+                            <Text
+                                text="AI responses may contain mistakes. Please verify important information."
+                                textAlign="Center"
+                                class="aiDisclaimer"
+                            />
+
+                        </VBox>
+
+                    </VBox>
+
+                </VBox>
+
+            </HBox>
+
+        </content>
+    </Page>
+
+</mvc:View>
