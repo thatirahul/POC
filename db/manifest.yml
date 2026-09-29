@@ -1,0 +1,13 @@
+---
+applications:
+  - name: sap-ai-agent-db-deployer
+    path: .
+    memory: 256M
+    disk_quota: 1G
+    no-route: true
+    health-check-type: process
+    buildpacks:
+      - nodejs_buildpack
+    command: npm start
+    services:
+      - Hana_HDI_Container_Instance

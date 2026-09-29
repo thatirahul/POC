@@ -1,0 +1,24 @@
+---
+applications:
+  - name: sap-ai-agent-hana-test
+    path: .
+    memory: 512M
+    disk_quota: 1G
+    instances: 1
+    buildpacks:
+      - python_buildpack
+    command: gunicorn --bind 0.0.0.0:$PORT -k uvicorn.workers.UvicornWorker app.fastapi_app:app
+    services:
+      - Hana_HDI_Container_Instance
+
+  - name: sap-ai-agent-db-deployer
+    path: db
+    memory: 256M
+    disk_quota: 1G
+    buildpacks:
+      - nodejs_buildpack
+    command: npm start
+    no-route: true
+    health-check-type: process
+    services:
+      - Hana_HDI_Container_Instance
